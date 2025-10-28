@@ -1,53 +1,50 @@
-Number Guesser Web3Bridge Exam
+#  Number Guesser — Web3Bridge Exam
 
-A simple, polished number guessing game. Guess the secret number between 1 and 100 before your attempts run out.
+A simple and interactive number-guessing game built with **vanilla JavaScript**.  
+Try to guess the secret number between **1 and 100** before your attempts run out.
 
-How to Play
+---
 
-1. Pick a difficulty.
-2. Enter a number from 1 to 100 and hit Guess.
-3. Read the feedback:
-4. Too high → try smaller.
-5. Too low → try bigger.
-6. Correct → you win!
+##  How to Play
 
-Attempts left are shown at the top. Use Restart to play again. Reveal gives up the answer.
+1. Select a **difficulty level** (Easy, Medium, Hard, or Insane).
+2. Enter a number between **1 and 100** and click **Guess**.
+3. The game will tell you if your guess is:
+   - **Too high** → try a smaller number  
+   - **Too low** → try a bigger number  
+   - **Correct** → you win!
+4. Watch your **remaining attempts** at the top.
+5. Click **Restart** to start a new round or **Reveal** to show the secret number.
 
-Features
+---
 
-1 Random secret number in 1–100
-2 GUI with input, buttons, feedback, and guess history
-3 Attempts limit with live counter
-4 Win/Loss end state message
-5 Restart without page reload
-6 Difficulty levels (10/7/5/3 attempts)
-7 Strong input validation and a11y
-8 Subtle animations for better UX
+## Features
 
-Error Handling
+- Random secret number between 1 and 100  
+- Difficulty levels (Easy, Medium, Hard, Insane)  
+- Instant feedback (too high, too low, correct)  
+- Restart and Reveal buttons  
+- Guess history tracking  
+- Input validation and error handling  
+- Clean, modern UI with subtle animations  
 
-Non-numbers, decimals, empty input, or values outside 1–100 are blocked with friendly messages.
+---
 
-Game state cannot break on bad input; controls disable when finished.
 
-Dev & Tests (optional bonus)
+---
 
-Development is vanilla HTML/CSS/JS in a single file (index.html).
+## ⚙️ Git Workflow
 
-Optional unit tests: extract validateInput into /src/app.js and test with Vitest/Jest.
+Follow standard Git best practices:
 
-Git Workflow
+```bash
+# Create a new feature branch
+git checkout -b feat/add-ui
 
-Use feature branches (feat/…, fix/…, test/…)
+# Make your changes and commit
+git add .
+git commit -m "feat: add difficulty selector"
 
-Open PRs for each set of changes
+# Push to GitHub
+git push -u origin feat/add-ui
 
-Merge to main for releases
-
-Tag releases if desired
-
-Hosting
-
-GitHub Pages: Settings → Pages → Branch: main, folder: /root
-
-Or deploy via Vercel/Netlify
