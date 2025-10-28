@@ -97,6 +97,7 @@
       </select>
       <button id="restart" class="btn ghost" type="button" aria-label="Restart game">↻ Restart</button>
       <button id="reveal" class="btn ghost" type="button" aria-label="Reveal number" title="Give up and reveal">👀 Reveal</button>
+      <button id="hint" class="btn ghost" type="button" aria-label="Show hint">💡 Hint</button>
     </section>
 
     <section class="panel game" aria-live="polite">
@@ -252,6 +253,16 @@
       const level = e.target.value;
       newGame(level);
     });
+    const $hint = document.getElementById('hint');
+    $hint.addEventListener('click', () => {
+    if (!state.playing) {
+    setFeedback('Game is over. Start a new round to get hints.');
+    return;
+    }
+    const hint = state.secret % 2 === 0 ? 'even' :    'odd';
+    setFeedback(`Hint: The secret number is ${hint}.`);
+    });
+
 
     // --- Init ---------------------------------------------------------------
     newGame($difficulty.value);
