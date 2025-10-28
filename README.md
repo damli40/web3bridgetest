@@ -1,4 +1,4 @@
-Number Guesser — Web3Bridge Exam
+Number Guesser Web3Bridge Exam
 
 A simple, polished number guessing game. Guess the secret number between 1 and 100 before your attempts run out.
 
