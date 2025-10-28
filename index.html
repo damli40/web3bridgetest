@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Number Guesser • Web3Bridge</title>
+  <meta name="description" content="Guess the secret number between 1 and 100. Built for the Web3Bridge exam." />
+  <style>
+    :root{
+      --bg: #0b1020;        /* deep navy */
+      --panel: #121a33;     /* card bg */
+      --accent: #6ee7ff;    /* cyan */
+      --accent-2: #8b5cf6;  /* violet */
+      --text: #e6f0ff;      /* near white */
+      --muted: #98a2b3;     /* slate */
+      --danger: #ff6b6b;    /* coral */
+      --success: #22c55e;   /* green */
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height:100%; }
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+      background: radial-gradient(1200px 800px at 80% -10%, #1b2a6f22, transparent), var(--bg);
+      color: var(--text);
+      display:grid; place-items:center; padding:24px;
+    }
+    .app{
+      width:min(720px, 100%);
+      background: linear-gradient(180deg, #121a33 0%, #0f1830 100%);
+      border: 1px solid #2b355a;
+      border-radius: 20px; padding: 24px; position: relative;
+      box-shadow: 0 10px 40px #0008;
+      overflow: hidden;
+    }
+    .glow{
+      position:absolute; inset: -40%; filter: blur(80px); opacity:.25; pointer-events:none;
+      background: radial-gradient(600px 300px at 20% 10%, var(--accent), transparent),
+                  radial-gradient(500px 300px at 80% 0%, var(--accent-2), transparent);
+      z-index:0;
+    }
+    header{ position: relative; z-index:1; }
+    h1{ font-size: clamp(22px, 2.4vw, 30px); margin:0 0 6px 0; letter-spacing:.2px; }
+    .subtitle{ color: var(--muted); margin:0 0 20px 0; font-size:14px; }
+
+    .toolbar{ display:flex; gap:12px; flex-wrap: wrap; align-items:center; margin: 10px 0 18px; }
+    .select, .btn{ appearance:none; border:1px solid #31406e; background:#0f1731; color:var(--text);
+      border-radius:12px; padding:10px 14px; font-size:14px; transition: .2s transform, .2s border-color, .2s background;
+    }
+    .select:focus-visible, .btn:focus-visible, input:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+    .btn{ cursor:pointer; }
+    .btn.primary{ background: linear-gradient(90deg, var(--accent), var(--accent-2)); color:#04101a; border-color: transparent; font-weight:700; }
+    .btn.ghost{ background:transparent; }
+
+    .game{ position:relative; z-index:1; display:grid; gap:16px; }
+    .panel{ background:rgba(255,255,255,0.03); border:1px solid #2b355a; border-radius:16px; padding:16px; }
+
+    .status{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    .badge{ padding:6px 10px; border-radius:999px; border:1px solid #2b355a; background:#0d1630; color:#cbd5e1; font-size:12px; }
+    .badge.success{ border-color:#256c3a; background:#0b2814; color:#86efac; }
+    .badge.warn{ border-color:#6b2730; background:#2a0e12; color:#fecaca; }
+
+    .guess-row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    input[type="number"]{
+      width: 160px; padding: 12px 14px; border-radius:12px; border:1px solid #2b355a; background:#0f1731; color:var(--text);
+      font-size:16px; transition:.2s border-color, .2s background;
+    }
+
+    .feedback{ min-height: 28px; color: #cbd5e1; font-size: 14px; }
+    .feedback.animated{ animation: pop .22s ease-out; }
+    @keyframes pop { from { transform: scale(.97); opacity:.7 } to { transform: scale(1); opacity:1 } }
+
+    .history{ display:flex; flex-wrap:wrap; gap:8px; }
+    .chip{ padding:6px 10px; border-radius:999px; background:#0b1228; border:1px solid #2b355a; color:#9fb6ff; font-size:12px; }
+
+    footer{ margin-top:6px; color:#9aa7bd; font-size:12px; text-align:center; }
+    .link{ color: var(--accent); text-decoration: none; }
+
+    /* Hidden to screen, but accessible to AT */
+    .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+  </style>
+</head>
+<body>
+  <main class="app" aria-labelledby="title">
+    <div class="glow" aria-hidden="true"></div>
+    <header>
+      <h1 id="title">Number Guesser</h1>
+      <p class="subtitle">Guess the secret number between <strong>1</strong> and <strong>100</strong> before you run out of attempts.</p>
+    </header>
+
+    <section class="panel toolbar" aria-label="Options">
+      <label for="difficulty" class="sr-only">Difficulty</label>
+      <select id="difficulty" class="select" aria-label="Select difficulty">
+        <option value="easy">Easy (10 tries)</option>
+        <option value="medium" selected>Medium (7 tries)</option>
+        <option value="hard">Hard (5 tries)</option>
+        <option value="insane">Insane (3 tries)</option>
+      </select>
+      <button id="restart" class="btn ghost" type="button" aria-label="Restart game">↻ Restart</button>
+      <button id="reveal" class="btn ghost" type="button" aria-label="Reveal number" title="Give up and reveal">👀 Reveal</button>
+    </section>
+
+    <section class="panel game" aria-live="polite">
+      <div class="status">
+        <span id="attemptsBadge" class="badge">Attempts left: <strong id="attemptsLeft">7</strong></span>
+        <span id="rangeBadge" class="badge">Range: <strong>1 – 100</strong></span>
+        <span id="stateBadge" class="badge">State: <strong id="state">Playing</strong></span>
+      </div>
+
+      <div class="guess-row">
+        <label for="guess" class="sr-only">Enter your guess</label>
+        <input id="guess" type="number" placeholder="Enter 1–100" min="1" max="100" inputmode="numeric" />
+        <button id="submit" class="btn primary" type="button">Guess</button>
+      </div>
+
+      <p id="feedback" class="feedback" role="status" aria-live="polite">Make your first guess.</p>
+
+      <div>
+        <h3 style="margin:6px 0 8px 0; font-size:13px; color:#9aa7bd; font-weight:600; letter-spacing:.3px;">Your guesses</h3>
+        <div id="history" class="history" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <footer>
+      Built with ♥ for the <span title="Web3Bridge">W3B</span> exam. <a class="link" href="https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site" target="_blank" rel="noreferrer">Deploy guide</a>
+    </footer>
+  </main>
+
+  <script>
+    // --- Core game state -----------------------------------------------------
+    const DIFFICULTY = {
+      easy: 10,
+      medium: 7,
+      hard: 5,
+      insane: 3,
+    };
+
+    function randInt(min, max){
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    const state = {
+      secret: randInt(1, 100),
+      attemptsLeft: DIFFICULTY.medium,
+      playing: true,
+      history: [],
+    };
+
+    // --- Dom refs ------------------------------------------------------------
+    const $difficulty = document.getElementById('difficulty');
+    const $restart = document.getElementById('restart');
+    const $reveal = document.getElementById('reveal');
+    const $attemptsLeft = document.getElementById('attemptsLeft');
+    const $state = document.getElementById('state');
+    const $feedback = document.getElementById('feedback');
+    const $history = document.getElementById('history');
+    const $submit = document.getElementById('submit');
+    const $guess = document.getElementById('guess');
+
+    // --- Helpers -------------------------------------------------------------
+    function setAttempts(n){
+      state.attemptsLeft = n;
+      $attemptsLeft.textContent = String(n);
+    }
+
+    function setPlaying(isPlaying){
+      state.playing = isPlaying;
+      $state.textContent = isPlaying ? 'Playing' : 'Finished';
+    }
+
+    function pushHistory(val){
+      state.history.push(val);
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.textContent = String(val);
+      $history.prepend(chip);
+    }
+
+    function setFeedback(msg, tone){
+      $feedback.textContent = msg;
+      $feedback.classList.remove('animated');
+      void $feedback.offsetWidth; // reflow for animation restart
+      $feedback.classList.add('animated');
+      $feedback.style.color = tone === 'good' ? 'var(--success)'
+        : tone === 'bad' ? 'var(--danger)'
+        : '#cbd5e1';
+    }
+
+    function validateInput(value){
+      if(value === '' || value === null) return { ok:false, reason:'Enter a number between 1 and 100.' };
+      const num = Number(value);
+      if(Number.isNaN(num)) return { ok:false, reason:'That is not a number.' };
+      if(!Number.isInteger(num)) return { ok:false, reason:'Please enter a whole number.' };
+      if(num < 1 || num > 100) return { ok:false, reason:'Number must be between 1 and 100.' };
+      return { ok:true, value:num };
+    }
+
+    function endGame(win){
+      setPlaying(false);
+      const msg = win ? `🎉 Correct! ${state.secret} was the number.`
+                      : `💀 Out of attempts. The number was ${state.secret}.`;
+      setFeedback(msg, win ? 'good' : 'bad');
+      $submit.disabled = true; $guess.disabled = true;
+    }
+
+    function newGame(difficulty){
+      state.secret = randInt(1, 100);
+      setAttempts(DIFFICULTY[difficulty] ?? DIFFICULTY.medium);
+      state.history = [];
+      $history.innerHTML = '';
+      setPlaying(true);
+      setFeedback('New game started. Make a guess!');
+      $submit.disabled = false; $guess.disabled = false;
+      $guess.value = '';
+      $guess.focus();
+    }
+
+    // --- Event handlers ------------------------------------------------------
+    $submit.addEventListener('click', () => {
+      if(!state.playing) return;
+      const v = $guess.value.trim();
+      const res = validateInput(v);
+      if(!res.ok){ setFeedback(res.reason, 'bad'); return; }
+      const n = res.value;
+      pushHistory(n);
+
+      if(n === state.secret){ endGame(true); return; }
+
+      setAttempts(state.attemptsLeft - 1);
+      if(state.attemptsLeft <= 0){ endGame(false); return; }
+
+      if(n > state.secret){
+        setFeedback('Too high. Try a smaller number.');
+      } else {
+        setFeedback('Too low. Try a bigger number.');
+      }
+      $guess.select();
+    });
+
+    $guess.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter'){ e.preventDefault(); $submit.click(); }
+    });
+
+    $restart.addEventListener('click', () => newGame($difficulty.value));
+
+    $reveal.addEventListener('click', () => {
+      if(!state.playing){ setFeedback(`Already finished. The number was ${state.secret}.`); return; }
+      setFeedback(`You gave up. The number is ${state.secret}.`, 'bad');
+      endGame(false);
+    });
+
+    $difficulty.addEventListener('change', (e) => {
+      const level = e.target.value;
+      newGame(level);
+    });
+
+    // --- Init ---------------------------------------------------------------
+    newGame($difficulty.value);
+
+    // --- Optional tiny test hooks (run in dev console) ----------------------
+    // window.__test = {
+    //   validateInput,
+    //   randSample: () => Array.from({length:1000}, () => randInt(1,100)).every(n => n>=1 && n<=100)
+    // };
+  </script>
+</body>
+</html>
