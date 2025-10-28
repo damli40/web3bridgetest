@@ -14,7 +14,8 @@ Try to guess the secret number between **1 and 100** before your attempts run ou
    - **Too low** → try a bigger number  
    - **Correct** → you win!
 4. Watch your **remaining attempts** at the top.
-5. Click **Restart** to start a new round or **Reveal** to show the secret number.
+5. Click **Hint** to get if the number is even or odd.
+6. Click **Restart** to start a new round or **Reveal** to show the secret number.
 
 ---
 
