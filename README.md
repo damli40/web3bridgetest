@@ -47,4 +47,24 @@ git commit -m "feat: add difficulty selector"
 
 # Push to GitHub
 git push -u origin feat/add-ui
+```
+
+Then open a Pull Request (PR) on GitHub and merge it into `main.`
+
+## Hosting
+
+Deploy easily using GitHub Pages:
+
+- Go to your repository → Settings → Pages
+- Under Build and Deployment, set:
+
+Source: Deploy from branch
+
+Branch: main → / (root)
+- Click Save
+
+Your site will be live at:
+```bash
+https://<your-username>.github.io/<repo-name>/
+```
 
